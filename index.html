@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Webpage</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Consolas, monospace;
+            color: #fff;
+        }
+        body {
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(0, 0, 0, 0.7);
+            background-blend-mode: overlay;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .search-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .search-bar input {
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            background-color: #300707;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+        }
+        .search-bar button:hover {
+            background-color: #b10e19;
+        }
+        .content {
+            flex: 1;
+            padding: 50px;
+            max-width: 600px;
+            margin: auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #searchResults {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search...">
+        <button id="searchButton">Search</button>
+    </div>
+    <div class="container">
+        <div class="content">
+            <h1>Welcome to Our Page</h1>
+            <p>This is a simple webpage with a search bar in the top right corner and an introduction on the right. The page has a darker appearance overall and features a background image.</p>
+            <div id="searchResults"></div>
+        </div>
+    </div>
+    <script>
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value;
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: searchTerm }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('searchResults');
+                resultsDiv.innerHTML = `<h2>Search Results:</h2><p>${data.results}</p>`;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+        // Add event listener for button click
+        document.getElementById('searchButton').addEventListener('click', performSearch);
+
+        // Add event listener for Enter key press
+        document.getElementById('searchInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission if within a form
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>

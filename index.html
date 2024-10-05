@@ -63,7 +63,7 @@
 <body>
     <div class="search-bar">
         <input type="text" id="searchInput" placeholder="Search...">
-        <button id="searchButton">Search</button>
+        <button onclick="performSearch()">Search</button>
     </div>
     <div class="container">
         <div class="content">
@@ -72,9 +72,15 @@
             <div id="searchResults"></div>
         </div>
     </div>
+    <div id="debugInfo"></div>
     <script>
         function performSearch() {
             const searchTerm = document.getElementById('searchInput').value;
+
+            const debugDiv = document.getElementById('debugInfo');
+
+            debugDiv.innerHTML = `<p>Sending search request for: "${searchTerm}"</p>`;
+
             fetch('/search', {
                 method: 'POST',
                 headers: {
@@ -82,25 +88,26 @@
                 },
                 body: JSON.stringify({ query: searchTerm }),
             })
-            .then(response => response.json())
+            .then(response => {
+            debugDiv.innerHTML += `<p>Received response with status: ${response.status}</p>`;
+            return response.json();
+            })
             .then(data => {
+                debugDiv.innerHTML += `<p>Parsed JSON data. Results count: ${data.results.length}</p>`;
                 const resultsDiv = document.getElementById('searchResults');
-                resultsDiv.innerHTML = `<h2>Search Results:</h2><p>${data.results}</p>`;
+                if (data.results && data.results.length > 0) {
+                    resultsDiv.innerHTML = `<h2>Search Results:</h2><ul>${data.results.map(result => `<li>${result}</li>`).join('')}</ul>`;
+                } else {
+                    resultsDiv.innerHTML = '<p>No results found.</p>';
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
-            });
+                debugDiv.innerHTML += `<p>Error occurred: ${error.message}</p>`;
+                const resultsDiv = document.getElementById('searchResults');
+                resultsDiv.innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+            })
         }
-        // Add event listener for button click
-        document.getElementById('searchButton').addEventListener('click', performSearch);
-
-        // Add event listener for Enter key press
-        document.getElementById('searchInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent form submission if within a form
-                performSearch();
-            }
-        });
     </script>
 </body>
 </html>

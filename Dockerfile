@@ -12,7 +12,7 @@ WORKDIR /app
 COPY . /app
 
 # Install any needed packages
-RUN pip install --no-cache-dir fastapi uvicorn gunicorn
+RUN pip install --no-cache-dir fastapi uvicorn gunicorn boto3
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf

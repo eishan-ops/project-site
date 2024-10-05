@@ -15,3 +15,8 @@ All of the above is containerized with the help of Dockerfile.
 `docker build -t nginx-fastapi-search`
 `docker run -d -p 8080:80 nginx-fastapi-search`
 
+## Latest build 
+
+Latest build can be found in docker hub `project-site:poc-1.1.0`
+
+Build now has s3 integration, search bar takes a search term, then Python-fastAPI connects to an s3 backend and returns the name of the S3 object , in which the user search term was found.

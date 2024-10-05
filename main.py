@@ -1,35 +1,3 @@
-# from fastapi import FastAPI, HTTPException
-# from pydantic import BaseModel
-# from typing import List
-
-# app = FastAPI()
-
-# # Sample data for demonstration
-# sample_texts = [
-#     "The quick brown fox jumps over the lazy dog",
-#     "Python is a versatile programming language",
-#     "FastAPI provides fast performance for production",
-#     "Text search can be implemented in various ways"
-# ]
-
-# class SearchQuery(BaseModel):
-#     query: str
-
-# class SearchResult(BaseModel):
-#     results: List[str]
-
-# @app.post("/search", response_model=SearchResult)
-# async def search(query: SearchQuery):
-#     if not query.query:
-#         raise HTTPException(status_code=400, detail="Search query cannot be empty")
-    
-#     # Simple case-insensitive search
-#     results = [text for text in sample_texts if query.query.lower() in text.lower()]
-    
-#     return SearchResult(results=results)
-
-# Note: We've removed the `if __name__ == "__main__":` block as we'll be using Gunicorn to run the app
-
 # fast API AWS s3 implementation : 
 import boto3
 from fastapi import FastAPI, HTTPException

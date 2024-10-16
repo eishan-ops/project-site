@@ -1,11 +1,12 @@
 # fast API AWS s3 implementation : 
 import boto3
+from botocore.exceptions import ClientError
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 import os
 import logging
-import traceback
+from urllib.parse import unquote
 
 app = FastAPI()
 
@@ -54,3 +55,19 @@ async def search(query: SearchQuery):
 
     logger.info(f"Search completed. Found {len(results)} results.")
     return SearchResult(results=results)
+
+@app.get("/api/file-contents/{file_name:path}")
+async def get_file_contents(file_name: str):
+    # Decode the URL-encoded file name
+    decoded_file_name = unquote(file_name)
+    logger.info(f"Attempting to fetch file: {decoded_file_name}")
+    try:
+        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=decoded_file_name)
+        content = response['Body'].read().decode('utf-8')
+        logger.info(f"Successfully fetched file: {decoded_file_name}")
+        return content
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            raise HTTPException(status_code=404, detail="File not found")
+        else:
+            raise HTTPException(status_code=500, detail="Error retrieving file")

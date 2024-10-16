@@ -24,9 +24,10 @@
             height: 100%;
         }
         .search-bar {
-            position: absolute;
+            position: fixed;
             top: 20px;
             right: 20px;
+            z-index: 10;
         }
         .search-bar input {
             padding: 5px;
@@ -46,17 +47,55 @@
         .search-bar button:hover {
             background-color: #b10e19;
         }
+    /* Default content styling (for welcome page) */
         .content {
             flex: 1;
             padding: 50px;
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
+            overflow-y: auto;
+        }
+    /* Special styling for file content display */
+        .content.file-view {
+            max-width: none;
+            margin: 0;
+            padding: 20px;
+            padding-top: 60px; /* Make room for the back button */
         }
         h1 {
             margin-bottom: 20px;
         }
         #searchResults {
             margin-top: 20px;
+        }
+        #fileContents {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            font-family: Consolas, monospace;
+            tab-size: 4;  /* Added for proper tab rendering */
+            -moz-tab-size: 4;
+            -o-tab-size: 4;
+        }
+        #backButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #300707;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            z-index: 10;
+        }
+        #backButton:hover {
+            background-color: #b10e19;
         }
     </style>
 </head>
@@ -66,7 +105,7 @@
         <button onclick="performSearch()">Search</button>
     </div>
     <div class="container">
-        <div class="content">
+        <div class="content" id="mainContent">
             <h1>Welcome to Our Page</h1>
             <p>This is a simple webpage with a search bar in the top right corner and an introduction on the right. The page has a darker appearance overall and features a background image.</p>
             <div id="searchResults"></div>
@@ -89,14 +128,14 @@
                 body: JSON.stringify({ query: searchTerm }),
             })
             .then(response => {
-            debugDiv.innerHTML += `<p>Received response with status: ${response.status}</p>`;
-            return response.json();
+                debugDiv.innerHTML += `<p>Received response with status: ${response.status}</p>`;
+                return response.json();
             })
             .then(data => {
                 debugDiv.innerHTML += `<p>Parsed JSON data. Results count: ${data.results.length}</p>`;
                 const resultsDiv = document.getElementById('searchResults');
                 if (data.results && data.results.length > 0) {
-                    resultsDiv.innerHTML = `<h2>Search Results:</h2><ul>${data.results.map(result => `<li>${result}</li>`).join('')}</ul>`;
+                    resultsDiv.innerHTML = `<h2>Search Results:</h2><ul>${data.results.map(result => `<li><a href="#" onclick="displayFileContents('${result}'); return false;">${result}</a></li>`).join('')}</ul>`;
                 } else {
                     resultsDiv.innerHTML = '<p>No results found.</p>';
                 }
@@ -106,8 +145,61 @@
                 debugDiv.innerHTML += `<p>Error occurred: ${error.message}</p>`;
                 const resultsDiv = document.getElementById('searchResults');
                 resultsDiv.innerHTML = '<p>An error occurred while searching. Please try again.</p>';
-            })
+            });
         }
+
+        let currentlyDisplayedFile = null;
+        function displayFileContents(fileName) {
+            
+            // Remove "Match found in document:" prefix if present
+            const cleanFileName = fileName.replace("Match found in document:", "").trim();
+
+            // Encode the file name properly
+            const encodedFileName = encodeURIComponent(cleanFileName);
+            
+            fetch(`/api/file-contents/${encodedFileName}`)
+                .then(response => response.text())
+                .then(content => {
+                    const mainContent = document.getElementById('mainContent');
+                    
+                    // Add the file-view class to switch to full-width layout
+                    mainContent.className = 'content file-view';
+
+                    // Create a text node instead of using innerHTML to preserve whitespace
+                    const pre = document.createElement('pre');
+                    pre.id = 'fileContents';
+                    const textNode = document.createTextNode(content);
+                    pre.appendChild(textNode);
+
+                    mainContent.innerHTML = `
+                        <button id="backButton" onclick="showWelcomePage()">Back to Welcome Page</button>
+                        <h2>File: ${cleanFileName}</h2>
+                    `;
+                    mainContent.appendChild(pre);
+                    currentlyDisplayedFile = cleanFileName;
+                })
+                .catch(error => {
+                    console.error('Error fetching file contents:', error);
+                    const mainContent = document.getElementById('mainContent');
+                    mainContent.innerHTML = `
+                        <button id="backButton" onclick="showWelcomePage()">Back to Welcome Page</button>
+                        <p>Error loading file contents. ${error.message}</p>
+                    `;
+                });
+        }
+
+        function showWelcomePage() {
+            const mainContent = document.getElementById('mainContent');
+            
+            // Remove the file-view class to return to centered layout
+            mainContent.className = 'content';
+            mainContent.innerHTML = `
+                <h1>Welcome to Our Page</h1>
+                <p>This is a simple webpage with a search bar in the top right corner and an introduction on the right. The page has a darker appearance overall and features a background image.</p>
+                <div id="searchResults"></div>
+            `;
+        }
+
         document.getElementById('searchInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault(); // Prevent form submission if within a form

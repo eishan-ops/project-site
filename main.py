@@ -47,7 +47,8 @@ async def search(query: SearchQuery):
     results = []
     for obj in response.get('Contents', []):
         logger.info(f"Searching in object: {obj['Key']}")
-            # Get the object content as bytes and decode manually
+        
+        # Get the object content as bytes and decode manually
         file_content = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=obj['Key'])['Body'].read()
         try:
             # Try UTF-8 first
@@ -60,7 +61,7 @@ async def search(query: SearchQuery):
                 logger.warning(f"Could not decode file {obj['Key']}, skipping...")
                 continue
             
-            # Perform a simple case-insensitive search
+        # Perform a simple case-insensitive search
         if query.query.lower() in decoded_content.lower():
             results.append(f"Match found in document: {obj['Key']}")
 
@@ -74,8 +75,10 @@ async def get_file_contents(file_name: str):
     logger.info(f"Attempting to fetch file: {decoded_file_name}")
     try:
         response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=decoded_file_name)
+        
         # Read the content as bytes
         content_bytes = response['Body'].read()
+        
         # Try to detect the content type
         content_type = response.get('ContentType', 'text/plain')
         

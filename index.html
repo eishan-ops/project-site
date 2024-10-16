@@ -160,9 +160,8 @@
             fetch(`/api/file-contents/${encodedFileName}`)
                 .then(response => response.text())
                 .then(content => {
-                    // Clean up excessive line breaks
-                    // const cleanContent = content.replace(/(\r\n|\r|\n){2,}/g, '\n');
                     const mainContent = document.getElementById('mainContent');
+                    
                     // Add the file-view class to switch to full-width layout
                     mainContent.className = 'content file-view';
 
@@ -190,8 +189,8 @@
         }
 
         function showWelcomePage() {
-            // document.getElementById('fileContents').style.display = 'none';
             const mainContent = document.getElementById('mainContent');
+            
             // Remove the file-view class to return to centered layout
             mainContent.className = 'content';
             mainContent.innerHTML = `

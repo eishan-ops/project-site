@@ -8,7 +8,7 @@
         body, html {
             height: 100%;
             margin: 0;
-            font-family: Consolas, monospace;
+            font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
             color: #fff;
         }
         body {
@@ -16,7 +16,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.3);
             background-blend-mode: overlay;
         }
         .container {
@@ -30,22 +30,28 @@
             z-index: 10;
         }
         .search-bar input {
-            padding: 5px;
-            border-radius: 5px;
-            border: none;
+            padding: 8px 12px;
+            border-radius: 3px 0 0 3px;
+            border: 1px solid #545b64;
+            background-color: #232f3e;
+            color: #fff;
+            width: 200px;
+        }
+        .search-bar input::placeholder {
+            color: #8d9ba9;
         }
         .search-bar button {
-            padding: 10px 20px;
-            background-color: #300707;
+            padding: 8px 16px;
+            background-color: #ec7211;
             color: white;
             border: none;
-            border-radius: 0 5px 5px 0;
+            border-radius: 0 3px 3px 0;
             cursor: pointer;
             transition: background-color 0.3s;
-            font-size: 16px;
+            font-size: 14px;
         }
         .search-bar button:hover {
-            background-color: #b10e19;
+            background-color: #f09643;
         }
     /* Default content styling (for welcome page) */
         .content {
@@ -57,53 +63,227 @@
         }
     /* Special styling for file content display */
         .content.file-view {
-            max-width: none;
             margin: 0;
             padding: 20px;
             padding-top: 60px; /* Make room for the back button */
+            transition: padding-left 0.3s ease;
+            max-width: none; /* Remove max-width constraint */
+            width: calc(100% - 270px); /* Full width minus the directory tree width */
+            box-sizing: border-box; /* Include padding in width calculation */
         }
+                
+        /* Directory tree panel */
+        .directory-tree {
+            position: fixed;
+            left: 0;
+            top: 0;
+            min-width: 200px;
+            width: 250px; /* Initial width */
+            max-width: 50%; /* Maximum width */
+            height: 100%;
+            background-color: rgba(35, 47, 62, 0.70); /* #232f3e */
+            overflow-y: auto;
+            padding-top: 60px; /* Make room for the back button */
+            display: none; /* Hidden by default */
+            z-index: 5;
+            transition: width 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+        /* Resizer bar */
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            background-color: #1a232e;
+            z-index: 6;
+        }
+        
+        .resizer:hover, .resizer.active {
+            background-color: #ec7211;
+        }
+        
+        /* AWS-style tree design */
+        
+        .tree-node {
+            padding: 5px 0 5px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+        
+        .tree-node:hover {
+            background-color: #31414f;
+        }
+        
+        .tree-folder {
+            color: #f0f0f0;
+            font-weight: 500;
+        }
+        
+        .tree-file {
+            color: #d1d6dc;
+            padding-left: 25px;
+        }
+        
+        .tree-file.active {
+            color: #ffffff;
+            background-color: #31414f;
+            border-left: 3px solid #ec7211;
+        }
+        
+        .tree-children {
+            margin-left: 10px;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            display: none; /* Hidden by default */
+        }
+        
+        .tree-folder-expanded .tree-children {
+            display: block;
+        }
+                
+        .tree-folder span:before {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec7211'%3E%3Cpath d='M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/%3E%3C/svg%3E");
+            background-size: contain;
+            vertical-align: middle;
+        }
+        
+        .tree-file span:before {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d1d6dc'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E");
+            background-size: contain;
+            vertical-align: middle;
+        }
+        
+        /* Tree header */
+        .tree-header {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: #1a232e;
+            border-bottom: 1px solid #31414f;
+            margin-top: -10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tree-header:before {
+            content: "";
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec7211'%3E%3Cpath d='M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+        
         h1 {
             margin-bottom: 20px;
         }
         #searchResults {
             margin-top: 20px;
         }
+                
+        /* Styles for translucent tabs */
+        .result-tab {
+            background-color: rgba(35, 47, 62, 0.8);
+            border-radius: 3px;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            color: #fff;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        .result-tab:hover {
+            background-color: rgba(49, 65, 79, 0.9);
+            border-left: 3px solid #ec7211;
+            transform: translateX(5px);
+        }
+        
         #fileContents {
             white-space: pre-wrap;
             word-wrap: break-word;
-            overflow-x: auto;
+            overflow-x: hidden;
             margin: 0;
             padding: 0;
             width: 100%;
-            font-family: Consolas, monospace;
+            font-family: 'Cascadia Code', 'Source Code Pro', Consolas, monospace;
             tab-size: 4;  /* Added for proper tab rendering */
             -moz-tab-size: 4;
             -o-tab-size: 4;
+            line-height: 1.5;
         }
         #backButton {
             position: fixed;
             top: 20px;
             left: 20px;
-            padding: 10px 20px;
-            background-color: #300707;
+            padding: 8px 16px;
+            background-color: #ec7211;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 3px;
             cursor: pointer;
             transition: background-color 0.3s;
-            font-size: 16px;
+            font-size: 14px;
             z-index: 10;
         }
         #backButton:hover {
-            background-color: #b10e19;
+            background-color: #f09643;
         }
+                        
+        /* File header styling */
+        .file-header {
+            background-color: #232f3e;
+            border-radius: 3px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-header:before {
+            content: "";
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec7211'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+        
     </style>
 </head>
 <body>
     <div class="search-bar">
         <input type="text" id="searchInput" placeholder="Search...">
         <button onclick="performSearch()">Search</button>
+    </div>   
+    <!-- New directory tree panel with resiszer -->
+    <div id="directoryTree" class="directory-tree">
+        <div id="resizer" class="resizer"></div>
     </div>
+    
     <div class="container">
         <div class="content" id="mainContent">
             <h1>Welcome to Our Page</h1>
@@ -135,7 +315,18 @@
                 debugDiv.innerHTML += `<p>Parsed JSON data. Results count: ${data.results.length}</p>`;
                 const resultsDiv = document.getElementById('searchResults');
                 if (data.results && data.results.length > 0) {
-                    resultsDiv.innerHTML = `<h2>Search Results:</h2><ul>${data.results.map(result => `<li><a href="#" onclick="displayFileContents('${result}'); return false;">${result}</a></li>`).join('')}</ul>`;
+                    // Create tabs for each result instead of list items
+                    resultsDiv.innerHTML = `<h2>Search Results:</h2>`;
+                    
+                    // Create translucent tabs for each result
+                    data.results.forEach(result => {
+                        const cleanFileName = result.replace("Match found in document:", "").trim();
+                        const tab = document.createElement('div');
+                        tab.className = 'result-tab';
+                        tab.textContent = cleanFileName;
+                        tab.onclick = function() { displayFileContents(result); };
+                        resultsDiv.appendChild(tab);
+                    });
                 } else {
                     resultsDiv.innerHTML = '<p>No results found.</p>';
                 }
@@ -149,7 +340,91 @@
         }
 
         let currentlyDisplayedFile = null;
+                
+        // Fetch directory structure from S3
+        function fetchDirectoryStructure() {
+            return fetch('/api/directory-structure')
+                .then(response => response.json())
+                .catch(error => {
+                    console.error('Error fetching directory structure:', error);
+                    return { structure: [] };
+                });
+        }
+        
+        // Build directory tree DOM
+        function buildDirectoryTree(structure) {
+            const treeDiv = document.getElementById('directoryTree');
+            // Keep the resizer and add a header
+            const resizer = document.getElementById('resizer');
+            treeDiv.innerHTML = '';
+            treeDiv.appendChild(resizer);
+            
+            // Add AWS-style header
+            const header = document.createElement('div');
+            header.className = 'tree-header';
+            header.textContent = 'Files';
+            treeDiv.appendChild(header);
+            
+            // Create tree structure recursively
+            structure.forEach(item => {
+                const treeNode = createTreeNode(item);
+                treeDiv.appendChild(treeNode);
+            });
+        }
+        
+        function createTreeNode(item) {
+            const node = document.createElement('div');
+            
+            if (item.type === 'folder') {
+                // It's a folder
+                node.className = 'tree-node tree-folder';
+                node.innerHTML = `<span>${item.name}</span>`;
+                node.onclick = function(e) {
+                    e.stopPropagation();
+                    this.classList.toggle('tree-folder-expanded');
+                };
+                
+                // Create children container
+                const children = document.createElement('div');
+                children.className = 'tree-children';
+                
+                // Create child nodes recursively
+                if (item.children && item.children.length > 0) {
+                    item.children.forEach(child => {
+                        const childNode = createTreeNode(child);
+                        children.appendChild(childNode);
+                    });
+                }
+                
+                node.appendChild(children);
+            } else {
+                // It's a file
+                node.className = 'tree-node tree-file';
+                node.innerHTML = `<span>${item.name}</span>`;
+                
+                // Add click handler to display file contents
+                node.onclick = function(e) {
+                    e.stopPropagation();
+                    
+                    // Remove active class from all files
+                    document.querySelectorAll('.tree-file').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    
+                    // Add active class to this file
+                    this.classList.add('active');
+                    
+                    // Display file contents
+                    displayFileContents(item.path);
+                };
+            }
+            
+            return node;
+        }
+
         function displayFileContents(fileName) {
+            // Show directory tree when viewing file contents
+            document.getElementById('directoryTree').style.display = 'block';
             
             // Remove "Match found in document:" prefix if present
             const cleanFileName = fileName.replace("Match found in document:", "").trim();
@@ -161,9 +436,12 @@
                 .then(response => response.text())
                 .then(content => {
                     const mainContent = document.getElementById('mainContent');
+                    const treeWidth = document.getElementById('directoryTree').offsetWidth;
                     
                     // Add the file-view class to switch to full-width layout
                     mainContent.className = 'content file-view';
+                    mainContent.style.paddingLeft = (treeWidth + 20) + 'px';
+                    mainContent.style.width = `calc(100% - ${treeWidth}px)`;
 
                     // Create a text node instead of using innerHTML to preserve whitespace
                     const pre = document.createElement('pre');
@@ -173,10 +451,13 @@
 
                     mainContent.innerHTML = `
                         <button id="backButton" onclick="showWelcomePage()">Back to Welcome Page</button>
-                        <h2>File: ${cleanFileName}</h2>
+                        <div class="file-header">${cleanFileName}</div>
                     `;
                     mainContent.appendChild(pre);
                     currentlyDisplayedFile = cleanFileName;
+                                        
+                    // Highlight current file in directory tree if it exists
+                    highlightFileInTree(cleanFileName);
                 })
                 .catch(error => {
                     console.error('Error fetching file contents:', error);
@@ -186,13 +467,53 @@
                         <p>Error loading file contents. ${error.message}</p>
                     `;
                 });
+                            
+            // If tree isn't already loaded, fetch directory structure
+            if (!document.querySelector('.tree-node')) {
+                fetchDirectoryStructure().then(data => {
+                    buildDirectoryTree(data.structure);
+                });
+            }
+        }
+        
+        function highlightFileInTree(filePath) {
+            // Remove active class from all files
+            document.querySelectorAll('.tree-file').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Try to find the file in the tree
+            document.querySelectorAll('.tree-file').forEach(el => {
+                const fileName = el.textContent.trim().substring(2); // Remove the 📄 icon
+                if (filePath.endsWith(fileName)) {
+                    el.classList.add('active');
+                    
+                    // Expand parent folders
+                    let parent = el.parentElement;
+                    while (parent) {
+                        if (parent.classList.contains('tree-children')) {
+                            const folder = parent.parentElement;
+                            if (folder.classList.contains('tree-folder')) {
+                                folder.classList.add('tree-folder-expanded');
+                            }
+                        }
+                        parent = parent.parentElement;
+                    }
+                }
+            });
         }
 
         function showWelcomePage() {
             const mainContent = document.getElementById('mainContent');
+
+            // Hide directory tree
+            document.getElementById('directoryTree').style.display = 'none';
+            
             
             // Remove the file-view class to return to centered layout
             mainContent.className = 'content';
+            mainContent.style.paddingLeft = '';
+            mainContent.style.width = '';
             mainContent.innerHTML = `
                 <h1>Welcome to Our Page</h1>
                 <p>This is a simple webpage with a search bar in the top right corner and an introduction on the right. The page has a darker appearance overall and features a background image.</p>
@@ -206,6 +527,68 @@
                 performSearch();
             }
         });
+                        
+        // Implement resizable panel functionality
+        function makeResizable() {
+            const resizer = document.getElementById('resizer');
+            const directoryTree = document.getElementById('directoryTree');
+            const mainContent = document.getElementById('mainContent');
+            
+            let x = 0;
+            let treeWidth = 0;
+            
+            const mouseDownHandler = function(e) {
+                // Get the current mouse position
+                x = e.clientX;
+                
+                // Get the current width of the directory tree
+                treeWidth = parseInt(window.getComputedStyle(directoryTree).width, 10);
+                
+                // Add event listeners for mouse movement and release
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+                
+                // Add active class to resizer
+                resizer.classList.add('active');
+                
+                // Disable text selection while resizing
+                document.body.style.userSelect = 'none';
+            };
+            
+            const mouseMoveHandler = function(e) {
+                // Calculate the new width
+                const newWidth = treeWidth + e.clientX - x;
+                
+                // Apply minimum and maximum width constraints
+                if (newWidth >= 200 && newWidth <= window.innerWidth * 0.5) {
+                    directoryTree.style.width = newWidth + 'px';
+                    
+                    // Update content padding if we're in file view
+                    if (mainContent.classList.contains('file-view')) {
+                        mainContent.style.paddingLeft = (newWidth + 20) + 'px';
+                        mainContent.style.width = `calc(100% - ${newWidth}px)`;
+                    }
+                }
+            };
+            
+            const mouseUpHandler = function() {
+                // Remove event listeners
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                
+                // Remove active class from resizer
+                resizer.classList.remove('active');
+                
+                // Re-enable text selection
+                document.body.style.userSelect = '';
+            };
+            
+            // Attach the mousedown event listener
+            resizer.addEventListener('mousedown', mouseDownHandler);
+        }
+        
+        // Call the function to enable resizing
+        makeResizable();
     </script>
 </body>
 </html>

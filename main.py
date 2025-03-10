@@ -2,9 +2,9 @@
 import boto3
 from botocore.exceptions import ClientError
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any, Optional
 import os
 import logging
 from urllib.parse import unquote
@@ -33,6 +33,12 @@ class SearchQuery(BaseModel):
 
 class SearchResult(BaseModel):
     results: List[str]
+
+class DirectoryItem(BaseModel):
+    name: str
+    type: str  # 'folder' or 'file'
+    path: Optional[str] = None
+    children: Optional[List['DirectoryItem']] = None
 
 @app.post("/search", response_model=SearchResult)
 async def search(query: SearchQuery):
@@ -67,6 +73,65 @@ async def search(query: SearchQuery):
 
     logger.info(f"Search completed. Found {len(results)} results.")
     return SearchResult(results=results)
+
+@app.get("/api/directory-structure")
+async def get_directory_structure():
+    try:
+        # List all objects in the bucket
+        response = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME)
+        
+        if 'Contents' not in response:
+            return JSONResponse(content={"structure": []})
+        
+        # Build tree structure
+        tree = []
+        folder_map = {}  # Track folders we've already created
+        
+        for obj in response.get('Contents', []):
+            path = obj['Key']
+            parts = path.split('/')
+            
+            # Skip empty parts
+            parts = [p for p in parts if p]
+            
+            if not parts:
+                continue
+                
+            # Build the directory structure
+            current_path = ""
+            current_level = tree
+            
+            # Process each part of the path except the last one (which is the file)
+            for i, part in enumerate(parts):
+                is_last = i == len(parts) - 1
+                current_path = f"{current_path}/{part}" if current_path else part
+                
+                # If this is the last part and there's no trailing slash, it's a file
+                if is_last and not path.endswith('/'):
+                    current_level.append({
+                        "name": part,
+                        "type": "file",
+                        "path": current_path
+                    })
+                else:
+                    # It's a folder
+                    if current_path not in folder_map:
+                        new_folder = {
+                            "name": part,
+                            "type": "folder",
+                            "children": []
+                        }
+                        current_level.append(new_folder)
+                        folder_map[current_path] = new_folder["children"]
+                    
+                    # Update current level to this folder's children
+                    current_level = folder_map[current_path]
+        
+        return JSONResponse(content={"structure": tree})
+        
+    except ClientError as e:
+        logger.error(f"Error retrieving directory structure: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving directory structure")
 
 @app.get("/api/file-contents/{file_name:path}")
 async def get_file_contents(file_name: str):

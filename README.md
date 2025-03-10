@@ -17,10 +17,14 @@ All of the above is containerized with the help of Dockerfile.
 
 ## Latest build 
 
-Latest build can be found in docker hub `project-site:poc-2.0.0`
+Latest build can be found in docker hub `project-site:poc-2.1.0`
 
-Build now has s3 integration, search bar takes a search term, then Python-fastAPI connects to an s3 backend and returns the name of the S3 object , in which the user search term was found.
+Build now directory tree structure when a file is searched. This appears at the left thand side of the view port.
 
-The file name in which user search term was found now can be clicked and the file can be viewed as is. 
+Files are now (OR have to be) organized in a directory format for the directory tree structure to render correctly to the front end.
 
-When the file is being viewed, 'back to welcome page' button is now available for user to get back to the welcome/home page. 
+Search results now are displayed in tabulated manner instead of blue hyperlinks.
+
+Color enhancements and icons in the directory tree structure.
+
+When the file is being viewed, 'back to welcome page' button is still available for user to get back to the welcome/home page. 

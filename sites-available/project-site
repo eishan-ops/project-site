@@ -1,0 +1,49 @@
+# Upstream configuration for FastAPI servers
+upstream fastapi_backend {
+    # Replace with your actual FastAPI server IPs
+    server <fastapi_server_ip>:8000;
+    # server FASTAPI_SERVER_IP_2:8000;  # Add more servers for load balancing
+
+    # Load balancing method
+    least_conn;  # or ip_hash for session affinity
+}
+
+server {
+    listen 80;
+    server_name <nginx_server_ip>;  # Replace with your domain or Nginx server IP
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+    # Proxy to FastAPI backend
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /search {
+        proxy_pass http://fastapi_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        # Timeout settings
+        proxy_connect_timeout 240s;
+        proxy_send_timeout 240s;
+        proxy_read_timeout 240s;
+    }
+
+
+    location /api/ {
+        proxy_pass http://fastapi_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+}

@@ -12,19 +12,23 @@ All of the above is containerized with the help of Dockerfile under `docker-impl
 
 ## Running the code 
 ### Docker
-`cp index.html docker-implementation`
-`cp main.py docker-implementation` 
-`cd docker-implementation`
-`docker build -t nginx-fastapi-search`
-`docker run -d -p 8080:80 nginx-fastapi-search`
+`cp index.html docker-implementation`  
+
+`cp main.py docker-implementation`  
+
+`cd docker-implementation`  
+
+`docker build -t nginx-fastapi-search`  
+
+`docker run -d -p 8080:80 nginx-fastapi-search`  
 
 The docker implementation uses supervisord as the process manager for managing multiple processes inside a single container,
 this should only be used for testing purposes of new features
 
 ### EC2 
-Purpose is to simulate a live production environment. 
-Nginx webserver holds the `index.html` file and the project-site config under `sites-available/project-site`
-Application server has the gunicorn WSGI configuration under `opt/project-site/gunicorn.conf.py` , 
+Purpose is to simulate a live production environment.  
+Nginx webserver holds the `index.html` file and the project-site config under `sites-available/project-site`  
+Application server has the gunicorn WSGI configuration under `opt/project-site/gunicorn.conf.py` ,   
 Application server has a systemd service that boots up and enables fastAPI whose configuration can be found under `etc/systemd/system/project-site.service`
 
 ## Latest Docker build 
@@ -52,17 +56,17 @@ All new Infrastructure and Config managements changes , please refer to other re
 
 ## What's next in application implementation tips
 
-# Performance with many many files : 
+### Performance with many many files : 
 
 Add pagination to the directory structure API 
 Cache the directory structure to avoid frequent s3 list requests 
 consider limiting the depth of the directory tree (lower priority)
 
-# Filtering :
+### Filtering :
 
 we could add options to filter the tree by file type or name 
 
-# S3 Bucket Organization :
+### S3 Bucket Organization :
 
 Using bucket prefixes to separate different types of content
 
